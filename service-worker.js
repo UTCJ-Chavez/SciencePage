@@ -1,0 +1,78 @@
+const CACHE_NAME = "sciencepage-v1";
+
+const FILES_TO_CACHE = [
+  "./",
+  "./index.html",
+  "./about.html",
+  "./blog.html",
+  "./contact.html",
+  "./projects.html",
+  "./proj1.html",
+  "./singlepost.html",
+  "./manifest.json",
+  "./css/style.css",
+  "./css/mobile.css",
+  "./js/mobile.js",
+  "./images/logo.png",
+  "./images/bg-home.jpg",
+  "./images/bg-about.jpg",
+  "./images/bg-transparent1.png",
+  "./images/satellite.png",
+  "./images/alien-life.jpg",
+  "./images/astronaut.jpg",
+  "./images/curious-rover.jpg",
+  "./images/earth-satellite.jpg",
+  "./images/finding-planet.jpg",
+  "./images/galaxy.jpg",
+  "./images/icons.png",
+  "./images/mars-rover.jpg",
+  "./images/martianrover-journey.jpg",
+  "./images/moon-landing.jpg",
+  "./images/moon-satellite.jpg",
+  "./images/new-satellitedish.jpg",
+  "./images/project-image1.jpg",
+  "./images/project-image2.jpg",
+  "./images/project-image3.jpg",
+  "./images/project-image4.jpg",
+  "./images/satellite-dish.jpg",
+  "./images/space-shuttle.png",
+  "./images/space-station.jpg",
+  "./images/pwa-icon.svg",
+  "./fonts/audiowide-regular-webfont.woff",
+  "./fonts/audiowide-regular-webfont.ttf"
+];
+
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(FILES_TO_CACHE))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      )
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") return;
+
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+
+      return fetch(event.request).catch(() => {
+        if (event.request.mode === "navigate") {
+          return caches.match("./index.html");
+        }
+      });
+    })
+  );
+});
